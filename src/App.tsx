@@ -1194,6 +1194,8 @@ const addVerticalLines = () => {
         }
       });
 
+      console.log(`Added vertical line at coordinates: ${baseCoord} from elevation 0 to ${currentElevation}`);
+
       // Update the last vertical elevation to current elevation
       lastVerticalElevation = currentElevation;
       verticalLineCount++;

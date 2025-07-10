@@ -1023,6 +1023,7 @@ const addVerticalLine = () => {
   console.log('From elevation 0 to:', elevations[10]);
 };
 
+/*
 const addVerticalLines = () => {
   if (!mapRef.current) return;
 
@@ -1076,6 +1077,130 @@ const addVerticalLines = () => {
   }
 
   console.log(`Added ${Math.ceil(coordinates.length / 2)} vertical lines`);
+};
+*/
+/*
+const addVerticalLines = () => {
+  if (!mapRef.current) return;
+
+  // Create vertical lines for every other coordinate (every 2nd point)
+  for (let i = 0; i < coordinates.length; i += 2) {
+    const baseCoord = coordinates[i];
+    const offset = 0.001; // Very small offset to make line visible
+    const verticalCoords = [
+      baseCoord,
+      [baseCoord[0] + offset, baseCoord[1]] // Tiny horizontal offset
+    ];
+    
+    mapRef.current.addSource(`vertical-line-${i}`, {
+      type: 'geojson',
+      lineMetrics: true,
+      data: {
+        type: 'Feature',
+        properties: {
+          elevation: [0, elevations[i]] // Start at 0 (ground), end at packet elevation
+        },
+        geometry: {
+          coordinates: verticalCoords,
+          type: 'LineString'
+        }
+      }
+    });
+
+    mapRef.current.addLayer({
+      id: `vertical-line-${i}`,
+      type: 'line',
+      source: `vertical-line-${i}`,
+      layout: {
+        'line-z-offset': [
+          'interpolate',
+          ['linear'],
+          ['line-progress'],
+          0, 0, // At start of line (progress 0), elevation is 0
+          1, elevations[i] // At end of line (progress 1), elevation is packet elevation
+        ],
+        'line-elevation-reference': 'sea'
+      },
+      paint: {
+        'line-emissive-strength': 1.0,
+        'line-width': 10,
+        'line-color': '#ff0000',
+        'line-opacity': 0.7
+      }
+    });
+  }
+
+  console.log(`Added ${Math.ceil(coordinates.length / 2)} vertical lines from ground to elevation`);
+};
+*/
+
+const addVerticalLines = () => {
+  if (!mapRef.current) return;
+
+  const intervalFeet = 10000; // 10,000 feet
+  const intervalMeters = intervalFeet * 0.3048 * exaggeration; // Convert to meters with exaggeration
+  let lastVerticalElevation = 0; // Track the last elevation where we drew a vertical line
+  let verticalLineCount = 0;
+
+  // Create vertical lines at 10k foot intervals
+  for (let i = 0; i < coordinates.length; i++) {
+    const currentElevation = elevations[i];
+    
+    // Check if we've crossed a 10k foot threshold (up or down)
+    const elevationDifference = Math.abs(currentElevation - lastVerticalElevation);
+    
+    if (elevationDifference >= intervalMeters) {
+      const baseCoord = coordinates[i];
+      const offset = 0.001; // Very small offset to make line visible
+      const verticalCoords = [
+        baseCoord,
+        [baseCoord[0] + offset, baseCoord[1]] // Tiny horizontal offset
+      ];
+      
+      mapRef.current.addSource(`vertical-line-${i}`, {
+        type: 'geojson',
+        lineMetrics: true,
+        data: {
+          type: 'Feature',
+          properties: {
+            elevation: [0, currentElevation] // Start at 0 (ground), end at packet elevation
+          },
+          geometry: {
+            coordinates: verticalCoords,
+            type: 'LineString'
+          }
+        }
+      });
+
+      mapRef.current.addLayer({
+        id: `vertical-line-${i}`,
+        type: 'line',
+        source: `vertical-line-${i}`,
+        layout: {
+          'line-z-offset': [
+            'interpolate',
+            ['linear'],
+            ['line-progress'],
+            0, 0, // At start of line (progress 0), elevation is 0
+            1, currentElevation // At end of line (progress 1), elevation is packet elevation
+          ],
+          'line-elevation-reference': 'sea'
+        },
+        paint: {
+          'line-emissive-strength': 1.0,
+          'line-width': 8,
+          'line-color': 'royalblue',
+          'line-opacity': 0.5
+        }
+      });
+
+      // Update the last vertical elevation to current elevation
+      lastVerticalElevation = currentElevation;
+      verticalLineCount++;
+    }
+  }
+
+  console.log(`Added ${verticalLineCount} vertical lines at 10k foot intervals from ground to elevation`);
 };
 
 //   const addVerticalLine = () => {
@@ -1435,7 +1560,7 @@ console.log(`Added ${coordinates.length - 1} elevated line segments`);
       add2DLine();
       addElevatedLine();
       //addVerticalLine();
-      //addVerticalLines();
+      addVerticalLines();
       //initThreebox(); // Initialize Threebox
       //draw3dLineThreebox(); // Draw 3D line using Threebox
     });
@@ -1446,7 +1571,7 @@ console.log(`Added ${coordinates.length - 1} elevated line segments`);
       add2DLine();
       addElevatedLine();
       //addVerticalLine();
-      //addVerticalLines();
+      addVerticalLines();
       /*
     setTimeout(() => {
         initThreebox();

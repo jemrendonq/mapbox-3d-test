@@ -942,7 +942,7 @@ const currentElevation = coordsWithElevation[i - 1][2];
           [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], 0] // Drop to elevation 0
         ],
         color: '#00ff00', // Green color to distinguish from main line
-        width: 2,
+        width: 8,
         opacity: 0.7
       });
       
@@ -1560,26 +1560,25 @@ console.log(`Added ${coordinates.length - 1} elevated line segments`);
     // Handle initial load
     mapRef.current.on('load', () => {
       add2DLine();
-      addElevatedLine();
+      //addElevatedLine();
       //addVerticalLine();
-      addVerticalLines();
-      //initThreebox(); // Initialize Threebox
-      //draw3dLineThreebox(); // Draw 3D line using Threebox
+      //addVerticalLines();
+        addTerrain();
+      initThreebox(); // Initialize Threebox
+      draw3dLineThreebox(); // Draw 3D line using Threebox
     });
 
     // Handle style changes
     mapRef.current.on('style.load', () => {
       addTerrain();
       add2DLine();
-      addElevatedLine();
+      //addElevatedLine();
       //addVerticalLine();
-      addVerticalLines();
-      /*
+      //addVerticalLines();
     setTimeout(() => {
         initThreebox();
         draw3dLineThreebox();
       }, 100);
-      */
     });
 
     return () => mapRef.current?.remove();

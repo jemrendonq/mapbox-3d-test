@@ -907,38 +907,42 @@ const tbRef = useRef<any>(null); // Add reference for Threebox
   };
 
   // Function to draw 3D line using Threebox
-  const draw3dLineThreebox = () => {
-    if (!tbRef.current) return;
+const draw3dLineThreebox = () => {
+  if (!tbRef.current) return;
 
-    // Create coordinates with elevation data [lng, lat, elevation]
-    const coordsWithElevation = coordinates.map((coord, index) => [
-      coord[0], // longitude
-      coord[1], // latitude  
-      elevations[index] // elevation (already includes exaggeration)
-    ]);
+  // Create coordinates with elevation data [lng, lat, elevation]
+  const coordsWithElevation = coordinates.map((coord, index) => [
+    coord[0], // longitude
+    coord[1], // latitude  
+    elevations[index] // elevation (already includes exaggeration)
+  ]);
 
-    const intervalMeters = 10000 * 0.3048 * exaggeration; // 4572 meters with exaggeration
+  const intervalMeters = 10000 * 0.3048 * exaggeration; // 4572 meters with exaggeration
   let lastVerticalElevation = 0;
 
-    for (let i = 1; i < coordsWithElevation.length; i++) {
-      // Draw the segment in space
-      const lineSegment = tbRef.current.line({
-        geometry: [
-          [coordsWithElevation[i][0], coordsWithElevation[i][1], coordsWithElevation[i][2]],
-          [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], coordsWithElevation[i - 1][2]]
-        ],
-        color: '#dd0000',
-        width: 6,
-        opacity: 1
-      });
-      
-      tbRef.current.add(lineSegment);
+  for (let i = 1; i < coordsWithElevation.length; i++) {
+    // Draw the segment in space
+    const lineSegment = tbRef.current.line({
+      geometry: [
+        [coordsWithElevation[i][0], coordsWithElevation[i][1], coordsWithElevation[i][2]],
+        [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], coordsWithElevation[i - 1][2]]
+      ],
+      color: '#dd0000',
+      width: 6,
+      opacity: 1
+    });
+    
+    tbRef.current.add(lineSegment);
 
-const currentElevation = coordsWithElevation[i - 1][2];
-    if (currentElevation - lastVerticalElevation >= intervalMeters) {
+    const currentElevation = coordsWithElevation[i - 1][2];
+    
+    // Check if we've crossed a 10k foot threshold (both ascending and descending)
+    const elevationDifference = Math.abs(currentElevation - lastVerticalElevation);
+    
+    if (elevationDifference >= intervalMeters) {
       const lineVertical = tbRef.current.line({
         geometry: [
-          [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], coordsWithElevation[i - 1][2]],
+          [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], currentElevation],
           [coordsWithElevation[i - 1][0], coordsWithElevation[i - 1][1], 0] // Drop to elevation 0
         ],
         color: '#00ff00', // Green color to distinguish from main line
@@ -947,13 +951,12 @@ const currentElevation = coordsWithElevation[i - 1][2];
       });
       
       tbRef.current.add(lineVertical);
-      lastVerticalElevation = currentElevation;
+      lastVerticalElevation = currentElevation; // Update to current elevation
     }
   }
 
-    console.log(`Added ${coordsWithElevation.length - 1} 3D line segments using Threebox`);
-  };
-
+  console.log(`Added ${coordsWithElevation.length - 1} 3D line segments using Threebox`);
+};
 
   // Function to add terrain
   const addTerrain = () => {
